@@ -1,14 +1,11 @@
 package com.darkpixellabs.honeytrap.controller;
-
-import com.darkpixellabs.honeytrap.model.*; import org.junit.jupiter.api.Test; import org.springframework.beans.factory.annotation.Autowired; import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest; import org.springframework.boot.test.mock.mockito.MockBean; import org.springframework.data.domain.*; import org.springframework.test.web.servlet.MockMvc; import java.util.*; import static org.mockito.Mockito.*; import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get; import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-@WebMvcTest(DashboardApiController.class)
-class DashboardApiControllerTest {
+import com.darkpixellabs.honeytrap.model.*; import org.junit.jupiter.api.Test; import org.springframework.beans.factory.annotation.Autowired; import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest; import org.springframework.boot.test.mock.mockito.MockBean; import org.springframework.data.domain.Page; import org.springframework.test.web.servlet.MockMvc; import java.util.*; import static org.mockito.ArgumentMatchers.any; import static org.mockito.Mockito.when; import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get; import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+@WebMvcTest(DashboardApiController.class) class DashboardApiControllerTest {
  @Autowired MockMvc mvc; @MockBean HitRepository repo;
- @Test void summary() throws Exception {when(repo.count()).thenReturn(5L);when(repo.countByTimestampAfter(any())).thenReturn(4L);when(repo.countDistinctIps(any())).thenReturn(3L);when(repo.mostTargeted()).thenReturn(List.of(new Object[]{5L,"/.env"}));when(repo.mostActiveIp()).thenReturn(List.of(new Object[]{3L,"127.0.0.1"}));mvc.perform(get("/api/stats/summary")).andExpect(status().isOk()).andExpect(jsonPath("$.totalHits").value(5));}
- @Test void topIps() throws Exception {when(repo.ipCounts(any())).thenReturn(List.of(new Object[]{"1.2.3.4",7L}));mvc.perform(get("/api/stats/top-ips?limit=1")).andExpect(status().isOk()).andExpect(jsonPath("$[0].ip").value("1.2.3.4"));}
- @Test void topPaths() throws Exception {when(repo.pathCounts(any())).thenReturn(List.of(new Object[]{"/.env",7L}));mvc.perform(get("/api/stats/top-paths?limit=1")).andExpect(status().isOk()).andExpect(jsonPath("$[0].path").value("/.env"));}
- @Test void timeseries() throws Exception {when(repo.findAllByOrderByTimestampDesc(any())).thenReturn(List.of());mvc.perform(get("/api/stats/timeseries?bucket=hour")).andExpect(status().isOk());}
- @Test void hits() throws Exception {when(repo.findAllByOrderByTimestampDesc(any())).thenReturn(List.of());mvc.perform(get("/api/hits")).andExpect(status().isOk());}
- @Test void hitDetail() throws Exception {when(repo.findById(9L)).thenReturn(Optional.empty());mvc.perform(get("/api/hits/9")).andExpect(status().isNotFound());}
+ @Test void summary()throws Exception{when(repo.count()).thenReturn(5L);when(repo.countByTimestampAfter(any())).thenReturn(4L);when(repo.countDistinctIps(any())).thenReturn(3L);when(repo.mostTargeted()).thenReturn(List.<Object[]>of(new Object[]{5L,"/.env"}));when(repo.mostActiveIp()).thenReturn(List.<Object[]>of(new Object[]{3L,"127.0.0.1"}));mvc.perform(get("/api/stats/summary")).andExpect(status().isOk()).andExpect(jsonPath("$.totalHits").value(5));}
+ @Test void topIps()throws Exception{when(repo.ipCounts(any())).thenReturn(List.<Object[]>of(new Object[]{"1.2.3.4",7L}));mvc.perform(get("/api/stats/top-ips?limit=1")).andExpect(status().isOk()).andExpect(jsonPath("$[0].ip").value("1.2.3.4"));}
+ @Test void topPaths()throws Exception{when(repo.pathCounts(any())).thenReturn(List.<Object[]>of(new Object[]{"/.env",7L}));mvc.perform(get("/api/stats/top-paths?limit=1")).andExpect(status().isOk()).andExpect(jsonPath("$[0].path").value("/.env"));}
+ @Test void timeseries()throws Exception{when(repo.findAllByOrderByTimestampDesc(any())).thenReturn(Page.empty());mvc.perform(get("/api/stats/timeseries?bucket=hour")).andExpect(status().isOk());}
+ @Test void hits()throws Exception{when(repo.findAllByOrderByTimestampDesc(any())).thenReturn(Page.empty());mvc.perform(get("/api/hits")).andExpect(status().isOk());}
+ @Test void hitDetail()throws Exception{when(repo.findById(9L)).thenReturn(Optional.empty());mvc.perform(get("/api/hits/9")).andExpect(status().isNotFound());}
 }
