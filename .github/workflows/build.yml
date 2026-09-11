@@ -18,10 +18,16 @@ jobs:
       - name: Acceptance smoke test
         shell: bash
         run: |
+          set -euo pipefail
           nohup java -jar target/honeytrap-0.0.1-SNAPSHOT.jar >/tmp/honeytrap.log 2>&1 &
           pid=$!
-          trap 'kill $pid || true' EXIT
-          for i in {1..30}; do curl -fsS http://127.0.0.1:8080/api/health >/dev/null && break; sleep 1; done
+          trap 'kill $pid 2>/dev/null || true' EXIT
+          ready=0
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8080/api/health >/dev/null; then ready=1; break; fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/honeytrap.log; exit 1; fi
           curl -fsS http://127.0.0.1:8080/.env -A 'acceptance-agent-a' >/dev/null
           curl -fsS -X POST http://127.0.0.1:8080/admin/login -d 'username=fake&password=fake' -A 'acceptance-agent-b' >/dev/null
           curl -fsS http://127.0.0.1:8080/wp-login.php -A '<script>alert(1)</script>' >/dev/null
@@ -31,5 +37,9 @@ jobs:
           grep -q '"totalHits":5' /tmp/summary.json
           curl -fsS 'http://127.0.0.1:8080/api/hits?page=0&size=10' >/tmp/hits.json
           grep -q 'acceptance-agent' /tmp/hits.json
+          grep -q 'textContent' src/main/resources/static/app.js
+          grep -q '@Scheduled' src/main/java/com/darkpixellabs/honeytrap/service/HitLoggingService.java
           curl -fsS http://127.0.0.1:8080/ >/tmp/dashboard.html
-          grep -q '/api/stats/summary' /tmp/dashboard.html || true
+          grep -q 'HONEYTRAP' /tmp/dashboard.html
+      - name: Docker build
+        run: docker build -t honeytrap:ci .
